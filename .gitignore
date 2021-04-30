@@ -1,0 +1,10 @@
+*.conf
+themes/*
+alerts/*
+bibles/*
+custom/*
+images/*
+remotes/*
+songusage/*
+projector/*
+songs/*
