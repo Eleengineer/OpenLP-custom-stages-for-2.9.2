@@ -276,8 +276,6 @@ window.OpenLP = {
           OpenLP.currentSlide = parseInt(data.results.slide, 10);
           OpenLP.updateSlide();
         }*/
-        const reader = new FileReader();
-        data=JSON.parse(reader.result);
       }
     );
 //	$('span.chord').each(function(){this.style.display="inline"});

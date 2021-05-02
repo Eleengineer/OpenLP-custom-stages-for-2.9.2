@@ -91,9 +91,9 @@ window.OpenLP = {
   },
   loadSlides: function (event) {
     $.getJSON(
-      "/api/controller/live/text",
+      "/api/v2/controller/live-items",
       function (data, status) {
-        OpenLP.currentSlides = data.results.slides;
+        OpenLP.currentSlides = data./* results. */slides;
         $('#transposevalue').text(getTransposeValue(OpenLP.currentSlides[0].text.split("\n")[0]));
         OpenLP.currentSlide = 0;
         OpenLP.currentTags = Array();
@@ -102,19 +102,18 @@ window.OpenLP = {
         var tag = "";
         var tags = 0;
         var lastChange = 0;
-        $.each(data.results.slides, function(idx, slide) {
+        $.each(data.slides, function(idx, slide) {
           var prevtag = tag;
           tag = slide["tag"];
-          if (tag != prevtag) {
+          if ( tag != prevtag ) {
             // If the tag has changed, add new one to the list
             lastChange = idx;
-            tags =+ 1;
+            tags ++;
             div.append("&nbsp;<span>");
             $("#verseorder span").last().attr("id", "tag" + tags).text(tag);
           }
-          else {
-            if ((slide["html"] == data.results.slides[lastChange]["html"]) &&
-              (data.results.slides.length > idx + (idx - lastChange))) {
+          else if ((slide["html"] == data.slides[lastChange]["html"]) &&
+              (data.slides.length > idx + (idx - lastChange))) {
               // If the tag hasn't changed, check to see if the same verse
               // has been repeated consecutively. Note the verse may have been
               // split over several slides, so search through. If so, repeat the tag.
@@ -131,7 +130,7 @@ window.OpenLP = {
                 div.append("&nbsp;<span>");
                 $("#verseorder span").last().attr("id", "tag" + tags).text(tag);
               }
-            }
+            
           }
           OpenLP.currentTags[idx] = tags;
           if (slide["selected"])
@@ -147,14 +146,14 @@ window.OpenLP = {
     // Then leave a blank line between following verses
     //force no cords for trans lower thirds
     	
-	OpenLP.showchords=0;
-	if(!OpenLP.showchords) $(".chordline").toggleClass('chordline1');
+	  OpenLP.showchords=0;
+	  if(!OpenLP.showchords) $(".chordline").toggleClass('chordline1');
 
-	var transposeValue = getTransposeValue(OpenLP.currentSlides[0].text.split("\n")[0]),
-	chordclass=/class="[a-z\s]*chord[a-z\s]*"\s*style="display:\s?none"/g,
-	chordclassshow='class="chord" style="display:inline"',
-	regchord=/<span class="chord" style="display:inline">[\[{]([\(\w#b♭\+\*\d/\)-]+)[\]}]<\/span>([\u0080-\uFFFF,\w]*)([\u0080-\uFFFF,\w,\s,\.,\,,\!,\?,\;,\:,\|,\",\',\-,\_]*)(<br>)?/g,
-	replaceChords=function(mstr,$1,$2,$3,$4) {
+	  var transposeValue = getTransposeValue(OpenLP.currentSlides[0].text.split("\n")[0]),
+	  chordclass=/class="[a-z\s]*chord[a-z\s]*"\s*style="display:\s?none"/g,
+	  chordclassshow='class="chord" style="display:inline"',
+	  regchord=/<span class="chord" style="display:inline">[\[{]([\(\w#b♭\+\*\d/\)-]+)[\]}]<\/span>([\u0080-\uFFFF,\w]*)([\u0080-\uFFFF,\w,\s,\.,\,,\!,\?,\;,\:,\|,\",\',\-,\_]*)(<br>)?/g,
+	  replaceChords=function(mstr,$1,$2,$3,$4) {
 		var v='', w='';
 		var $1len = 0, $2len = 0, slimchars='fiíIÍjlĺľrtť.,;/ ()|"\'!:\\';
 		$1 = transposeChord($1, transposeValue);
@@ -179,20 +178,20 @@ window.OpenLP = {
 			if (!$2 && $3.charAt(0) == ' ') {for (c = 0; c < $1len; c++) {w += '&nbsp;';}}
 		}
 		return $.grep(['<span class="chord" style="display:inline"><span><strong>', $1, '</strong></span>', $2, w, $3, '</span>', $4], Boolean).join('');
-	};
+	  };
     $("#verseorder span").removeClass("currenttag");
     $("#tag" + OpenLP.currentTags[OpenLP.currentSlide]).addClass("currenttag");
     var slide = OpenLP.currentSlides[OpenLP.currentSlide];
     var text = "";
     // use title if available
     if (slide["title"]) {
-        text = slide["title"];
-    } else {
-        text = slide["html"];
-	      if(OpenLP.showchords) {
-            text = text.replace(chordclass,chordclassshow);
-            text = text.replace(regchord, replaceChords);
-        }
+      text = slide["title"] + '<br />';
+    }
+    text += slide["html"];
+	  if(OpenLP.showchords) {
+      text = text.replace(chordclass,chordclassshow);
+      text = text.replace(regchord, replaceChords);
+      
     }
     // use thumbnail if available
     if (slide["img"]) {
@@ -202,29 +201,29 @@ window.OpenLP = {
     if (slide["slide_notes"]) {
         text += '<br />' + slide["slide_notes"];
     }
-	text = text.replace(/\n/g, "<br />");
+	  text = text.replace(/\n/g, "<br />");
 	
-	$("#currentslide").html(text).fadeIn(intfadein);
+	  $("#currentslide").html(text).fadeIn(intfadein);
 	  text = "";
     if (OpenLP.currentSlide < OpenLP.currentSlides.length - 1) {
       for (var idx = OpenLP.currentSlide + 1; idx < OpenLP.currentSlides.length; idx++) {
         if (OpenLP.currentTags[idx] != OpenLP.currentTags[idx - 1])
-            text = text + "<p class=\"nextslide\">";
+          text = text + "<p class=\"nextslide\">";
         if (OpenLP.currentSlides[idx]["title"]) {
-            text = text + OpenLP.currentSlides[idx]["title"];
-        } else {
-            text = text + OpenLP.currentSlides[idx]["html"];
-            if(OpenLP.showchords) {
-              text = text.replace(chordclass,chordclassshow);
-              text = text.replace(regchord, replaceChords);
-            }
-        }
+          text = text + OpenLP.currentSlides[idx]["title"] + '<br />';
+        } 
+          text = text + OpenLP.currentSlides[idx]["html"];
+          if(OpenLP.showchords) {
+            text = text.replace(chordclass,chordclassshow);
+            text = text.replace(regchord, replaceChords);
+          }
+        
         if (OpenLP.currentTags[idx] != OpenLP.currentTags[idx - 1])
             text = text + "</p>";
         else
             text = text + "<br />";
       }
-	text = text.replace(/\n/g, "<br />");
+	    text = text.replace(/\n/g, "<br />");
       $("#nextslide").html(text);
     }
     else {
@@ -238,44 +237,48 @@ window.OpenLP = {
     var div = $("#clock");
     var t = new Date();
     var h = t.getHours();
-    if (data.results.twelve && h > 12)
+    if (/*data.results.twelve &&*/ h > 12)
       h = h - 12;
-	if (h < 10) h = '0' + h + '';
+	  if (h < 10) h = '0' + h + '';
     var m = t.getMinutes();
-    if (m < 10)
-      m = '0' + m + '';
-    div.html(h + ":" + m);
+    if (m < 10) m = '0' + m + '';
+    var s = t.getSeconds()
+    if (s < 10) s = '0' + s + ''
+    div.html(h + ":" + m + ":" + s);
   },
-  pollServer: function (data, status) {
-      //const data=JSON.parse(reader.result.toString()).results;
-      OpenLP.updateClock(data);
-      if (OpenLP.currentItem != data.results.item || OpenLP.currentService != data.results.service) {
+  pollServer: function (data,status){
+        //console.log(data)
+        //console.log(data.results);
+        if (OpenLP.currentItem != data.results.item || OpenLP.currentService != data.results.service) {
           OpenLP.currentItem = data.results.item;
           OpenLP.currentService = data.results.service;
           OpenLP.loadSlides();
-      }
-      else if (OpenLP.currentSlide != data.results.slide) {
+        }
+        else if (OpenLP.currentSlide != data.results.slide) {
           OpenLP.currentSlide = parseInt(data.results.slide, 10);
           $("#currentslide").fadeOut(intfadeout,function (){});
           $("#currentslide").hide();
           OpenLP.updateSlide();
-               
-      }
-    }
-    
+        }
+      
+      
+  },
+      
 //	$('span.chord').each(function(){this.style.display="inline"});
 }
 
-$.ajaxSetup({ cache: false });
 ws = new WebSocket(`ws://${host}:${websocket_port}`);
 ws.onmessage = (event) => {
     const reader = new FileReader();
     reader.onload = () => {
+      //console.log(reader)
       const data = JSON.parse(reader.result.toString());
-        // Do stuff here
-        console.log(data.results);
-        //data= state;
-        OpenLP.pollServer(data)
+      // Do stuff here
+      //console.log(data);
+      OpenLP.pollServer(data)
       };
     reader.readAsText(event.data);
 };
+$.ajaxSetup({ cache: false });
+OpenLP.updateClock();
+setInterval("OpenLP.updateClock()", 500);

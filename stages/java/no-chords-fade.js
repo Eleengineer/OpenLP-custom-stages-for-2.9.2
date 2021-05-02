@@ -277,8 +277,9 @@ window.OpenLP = {
     $.getJSON(
       "/api/poll",
       function (data, status) {
-        data=JSON.parse(reader.result.toString());
-        OpenLP.updateClock(data);
+        //data=JSON.parse(reader.result.toString());
+        if (data){
+          OpenLP.updateClock(data);
         if (OpenLP.currentItem != data.results.item || OpenLP.currentService != data.results.service) {
           OpenLP.currentItem = data.results.item;
           OpenLP.currentService = data.results.service;
@@ -290,11 +291,7 @@ window.OpenLP = {
           $("#currentslide").fadeOut(intfadeout,function (){});
           $("#currentslide").hide();
           OpenLP.updateSlide();
-          
-          
-          
-          
-          
+        }
         }
       }
     );
@@ -302,7 +299,7 @@ window.OpenLP = {
   }
 }
 $.ajaxSetup({ cache: false });
-setInterval("OpenLP.pollServer();", 100);
+setInterval("OpenLP.pollServer();", 500);
 OpenLP.pollServer();
 $(document).ready(function() {
 	$('#transposeup').click(function(e) {

@@ -1,10 +1,13 @@
 *.conf
-themes/*
 alerts/*
 bibles/*
 custom/*
 images/*
-remotes/*
-songusage/*
+media/*
+presentations/*
 projector/*
+remotes/*
+servicemanager/*
 songs/*
+songusage/*
+themes/*
