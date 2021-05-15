@@ -93,7 +93,7 @@ window.OpenLP = {
     $.getJSON(
       "/api/v2/controller/live-items",
       function (data, status) {
-        OpenLP.currentSlides = data./* results. */slides;
+        OpenLP.currentSlides = data.slides;
         $('#transposevalue').text(getTransposeValue(OpenLP.currentSlides[0].text.split("\n")[0]));
         OpenLP.currentSlide = 0;
         OpenLP.currentTags = Array();
@@ -282,3 +282,21 @@ ws.onmessage = (event) => {
 $.ajaxSetup({ cache: false });
 OpenLP.updateClock();
 setInterval("OpenLP.updateClock()", 500);
+$(document).ready(function() {
+	$('#transposeup').click(function(e) {
+		$('#transposevalue').text(parseInt($('#transposevalue').text()) + 1);
+		storeTransposeValue(OpenLP.currentSlides[0].text.split("\n")[0], $('#transposevalue').text());
+		//alert(getTransposeValue(OpenLP.currentSlides[0].text.split("\n")[0]));
+		//$('body').get(0).style.'font-size' = (parseFloat($('body').css('font-size')) + 0.1) + 'vw');
+		OpenLP.loadSlides();
+	});
+	$('#transposedown').click(function(e) {  
+		$('#transposevalue').text(parseInt($('#transposevalue').text()) - 1);
+		storeTransposeValue(OpenLP.currentSlides[0].text.split("\n")[0], $('#transposevalue').text());
+		OpenLP.loadSlides();
+	});
+	$("#chords").click(function(){ OpenLP.showchords=OpenLP.showchords?false:true; OpenLP.updateSlide(); });
+	$('#plus').click(function() { var fs=$('#currentslide').css('font-size').match(/\d+/); $('#currentslide').css("font-size",+fs+10+"px");$('#nextslide').css("font-size",+fs+10+"px"); } );
+	$("#minus").click(function() {var fs=$('#currentslide').css('font-size').match(/\d+/); $('#currentslide').css("font-size",+fs-10+"px");$('#nextslide').css("font-size",+fs-10+"px"); } );
+	$('body').hover(function(){ $('#controls').fadeIn(500);},function(){ $('#controls').fadeOut(500);});
+});
