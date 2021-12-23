@@ -27,7 +27,8 @@
 var lastChord;
 var intfadein = 500;
 var intfadeout= 200;
- 
+const host = window.location.hostname;
+const websocket_port = 4317;
  
   
 function getTransposeValue(songId) {
@@ -116,9 +117,9 @@ window.OpenLP = {
   },
   loadSlides: function (event) {
     $.getJSON(
-      "/api/controller/live/text",
+      "/api/v2/controller/live-items",
       function (data, status) {
-        OpenLP.currentSlides = data.results.slides;
+        OpenLP.currentSlides = data.slides;
         $('#transposevalue').text(getTransposeValue(OpenLP.currentSlides[0].text.split("\n")[0]));
         OpenLP.currentSlide = 0;
         OpenLP.currentTags = Array();
@@ -127,25 +128,25 @@ window.OpenLP = {
         var tag = "";
         var tags = 0;
         var lastChange = 0;
-        $.each(data.results.slides, function(idx, slide) {
+        $.each(data.slides, function(idx, slide) {
           var prevtag = tag;
           tag = slide["tag"];
           if (tag != prevtag) {
             // If the tag has changed, add new one to the list
             lastChange = idx;
-            tags = tags + 1;
+            tags ++;
             div.append("&nbsp;<span>");
             $("#verseorder span").last().attr("id", "tag" + tags).text(tag);
           }
           else {
-            if ((slide["html"] == data.results.slides[lastChange]["html"]) &&
+            if ((slide["html"] == data.slides[lastChange]["html"]) &&
               (data.results.slides.length > idx + (idx - lastChange))) {
               // If the tag hasn't changed, check to see if the same verse
               // has been repeated consecutively. Note the verse may have been
               // split over several slides, so search through. If so, repeat the tag.
               var match = true;
               for (var idx2 = 0; idx2 < idx - lastChange; idx2++) {
-                if(data.results.slides[lastChange + idx2]["html"] != data.results.slides[idx + idx2]["html"]) {
+                if(data.slides[lastChange + idx2]["html"] != data.slides[idx + idx2]["html"]) {
                     match = false;
                     break;
                 }
@@ -210,7 +211,7 @@ window.OpenLP = {
     var slide = OpenLP.currentSlides[OpenLP.currentSlide];
     var text = "";
     // use title if available
-    if (slide["title"]) {
+    if (!slide["html"]) {
         text = slide["title"];
     } else {
         text = slide["html"];
@@ -265,7 +266,7 @@ window.OpenLP = {
     var div = $("#clock");
     var t = new Date();
     var h = t.getHours();
-    if (data.results.twelve && h > 12)
+    if (/* data.results.twelve && */ h > 12)
       h = h - 12;
 	if (h < 10) h = '0' + h + '';
     var m = t.getMinutes();
@@ -273,34 +274,40 @@ window.OpenLP = {
       m = '0' + m + '';
     div.html(h + ":" + m);
   },
-  pollServer: function () {
-    $.getJSON(
-      "/api/poll",
-      function (data, status) {
-        //data=JSON.parse(reader.result.toString());
-        if (data){
-          OpenLP.updateClock(data);
-        if (OpenLP.currentItem != data.results.item || OpenLP.currentService != data.results.service) {
-          OpenLP.currentItem = data.results.item;
-          OpenLP.currentService = data.results.service;
-          OpenLP.loadSlides();
-        }
-        else if (OpenLP.currentSlide != data.results.slide) {
-          OpenLP.currentSlide = parseInt(data.results.slide, 10);
-          
-          $("#currentslide").fadeOut(intfadeout,function (){});
-          $("#currentslide").hide();
-          OpenLP.updateSlide();
-        }
-        }
-      }
-    );
-//	$('span.chord').each(function(){this.style.display="inline"});
+  pollServer: function (data,status){
+    //console.log(data)
+    //console.log(data.results);
+    if (OpenLP.currentItem != data.results.item || OpenLP.currentService != data.results.service) {
+      OpenLP.currentItem = data.results.item;
+      OpenLP.currentService = data.results.service;
+      OpenLP.loadSlides();
+    }
+    else if (OpenLP.currentSlide != data.results.slide) {
+      OpenLP.currentSlide = parseInt(data.results.slide, 10);
+      $("#currentslide").fadeOut(intfadeout,function (){});
+      $("#currentslide").hide();
+      OpenLP.updateSlide();
+    }
+  
+  
+  //$('span.chord').each(function(){this.style.display="inline"});
   }
 }
+ws = new WebSocket(`ws://${host}:${websocket_port}`);
+ws.onmessage = (event) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      //console.log(reader)
+      const data = JSON.parse(reader.result.toString());
+      // Do stuff here
+      //console.log(data);
+      OpenLP.pollServer(data)
+      };
+    reader.readAsText(event.data);
+};
 $.ajaxSetup({ cache: false });
-setInterval("OpenLP.pollServer();", 500);
-OpenLP.pollServer();
+OpenLP.updateClock();
+setInterval("OpenLP.updateClock()", 500);
 $(document).ready(function() {
 	$('#transposeup').click(function(e) {
 		$('#transposevalue').text(parseInt($('#transposevalue').text()) + 1);
@@ -319,8 +326,4 @@ $(document).ready(function() {
 	$("#minus").click(function() {var fs=$('#currentslide').css('font-size').match(/\d+/); $('#currentslide').css("font-size",+fs-10+"px");$('#nextslide').css("font-size",+fs-10+"px"); } );
 	$('body').hover(function(){ $('#controls').fadeIn(500);},function(){ $('#controls').fadeOut(500);});
 });
-
-
-
-	
 
