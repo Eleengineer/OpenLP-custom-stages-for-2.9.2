@@ -6,5 +6,5 @@ files within stages/ to be copied into your data folder
 public script for formatting websites
 # java/
 scripts to operate multiple views
-#To Do
+# To Do
 - add compatability with github pages
