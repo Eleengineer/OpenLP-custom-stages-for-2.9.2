@@ -29,8 +29,8 @@ var intfadein = 500;
 var intfadeout= 200;
 const host = window.location.hostname;
 const websocket_port = 4317;
- 
-  
+
+
 function getTransposeValue(songId) {
 	if (localStorage.getItem(songId + '_transposeValue')) {return localStorage.getItem(songId + '_transposeValue');}
 	else {return 0;}
@@ -290,7 +290,6 @@ window.OpenLP = {
     }
   
   
-  //$('span.chord').each(function(){this.style.display="inline"});
   }
 }
 ws = new WebSocket(`ws://${host}:${websocket_port}`);
